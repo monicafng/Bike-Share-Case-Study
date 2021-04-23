@@ -45,6 +45,7 @@ tripdata_cleaned$ride_length <- tripdata_cleaned$ended_at - tripdata_cleaned$sta
 tripdata_cleaned$ride_length <- hms::hms(seconds_to_period(tripdata_cleaned$ride_length))
 
 # create new column `day_of_week`
+library(lubridate)
 tripdata_cleaned$day_of_week <- wday(tripdata_cleaned$started_at, label = FALSE)
 
 # mean of ride_length
@@ -118,14 +119,24 @@ tripdata_cleaned %>%
   ylab("Average Duration of Rides") +
   xlab("Day of Week")
 
+# average ride_length by type and day of week
 counts <- aggregate(tripdata_cleaned$ride_length ~ tripdata_cleaned$member_casual +
                       tripdata_cleaned$day_of_week, FUN = mean)
 
 write.csv(counts, file = 'avg_ride-length.csv')
 
-write.csv(tripdata_cleaned, file = 'alltrips.csv')
+# average ride_length and type and month
+tripdata_cleaned$month <- month(tripdata_cleaned$started_at, label = TRUE)
 
+rides <- aggregate(tripdata_cleaned$ride_length ~ tripdata_cleaned$member_casual +
+                     tripdata_cleaned$month,FUN = mean)
 
+write.csv(rides, file = 'avg_ride_length_by_month.csv')
 
+# dataset for visualization on Tableau
+alltrips <- tripdata_cleaned %>% 
+  select(-day_of_week)
 
+alltrips$day_of_week <- wday(alltrips$started_at, label = TRUE)
 
+write.csv(alltrips, file = "all_trips.csv", row.names = FALSE)
